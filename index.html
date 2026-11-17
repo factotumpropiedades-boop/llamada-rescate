@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Llamada de Rescate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f1115; --card:#181b22; --card2:#20242d; --line:#2b303b;
+  --txt:#f2f4f7; --mut:#9aa3b2; --acc:#34c759; --acc2:#ffd23f; --red:#ff3b30;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--txt);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.wrap{max-width:460px;margin:0 auto;padding:22px 16px 60px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.logo{width:46px;height:46px;border-radius:14px;background:var(--acc);display:grid;place-items:center;flex:none;box-shadow:0 6px 24px #34c75955}
+.logo svg{width:24px;height:24px;fill:#0b2b14}
+h1{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:28px;letter-spacing:-.5px;line-height:1}
+.sub{color:var(--mut);font-size:14px;margin:8px 0 22px;line-height:1.45}
+.step{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
+.step h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);font-weight:600;margin-bottom:12px;display:flex;gap:8px;align-items:center}
+.step h2 b{background:var(--card2);color:var(--txt);width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--card2);color:var(--txt);padding:9px 13px;border-radius:999px;font:500 14px Inter,sans-serif;cursor:pointer;transition:.15s}
+.chip:hover{border-color:#4a5162}
+.chip.on{background:var(--acc);color:#06210f;border-color:var(--acc);font-weight:600}
+.row{display:flex;gap:10px;margin-top:12px}
+label.f{display:block;font-size:12px;color:var(--mut);margin:12px 0 6px}
+input[type=text],select{width:100%;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:11px 12px;font:15px Inter,sans-serif;outline:none}
+input[type=text]:focus,select:focus{border-color:var(--acc)}
+.toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.toggle:first-of-type{border-top:none}
+.toggle small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
+.sw{position:relative;width:46px;height:28px;flex:none}
+.sw input{opacity:0;width:0;height:0}
+.sw span{position:absolute;inset:0;background:#3a3f4b;border-radius:99px;transition:.2s;cursor:pointer}
+.sw span:after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}
+.sw input:checked+span{background:var(--acc)}
+.sw input:checked+span:after{transform:translateX(18px)}
+.btn{width:100%;border:none;border-radius:16px;padding:16px;font:700 16px Inter,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .1s}
+.btn:active{transform:scale(.98)}
+.btn.main{background:var(--acc2);color:#2a2100;margin-top:6px}
+.btn.call{background:var(--acc);color:#06210f}
+.btn.ghost{background:var(--card2);color:var(--txt);border:1px solid var(--line);font-weight:600;font-size:14px;padding:12px}
+.btn svg{width:18px;height:18px;fill:currentColor}
+#result{display:none;margin-top:16px;background:linear-gradient(160deg,#1d2a20,#181b22 60%);border:1px solid #2e4a35;border-radius:20px;padding:18px}
+#result .tag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:#34c75922;color:var(--acc);padding:4px 9px;border-radius:99px}
+#result h3{font-family:"Bricolage Grotesque",sans-serif;font-size:22px;margin:10px 0 4px}
+#result .who{color:var(--mut);font-size:13px;margin-bottom:14px}
+.say{background:#0f1115aa;border-radius:14px;padding:12px 14px;margin-bottom:10px;font-size:14px;line-height:1.5}
+.say h4{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin-bottom:6px;font-weight:600}
+.say p+p{margin-top:6px}
+.say .you{color:var(--acc2)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.note{font-size:12px;color:var(--mut);margin-top:12px;line-height:1.45;text-align:center}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:#fff;color:#111;padding:11px 16px;border-radius:12px;font-weight:600;font-size:14px;transition:.3s;z-index:50}
+.toast.show{transform:translateX(-50%) translateY(0)}
+#countdown{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#20242d;border:1px solid var(--line);border-radius:99px;padding:8px 8px 8px 16px;display:none;align-items:center;gap:12px;font-size:14px;z-index:40;box-shadow:0 10px 30px #0008}
+#countdown button{background:#3a3f4b;color:#fff;border:none;border-radius:99px;padding:7px 12px;font:600 13px Inter;cursor:pointer}
+
+/* ===== Pantalla de llamada ===== */
+#call{position:fixed;inset:0;z-index:100;display:none;flex-direction:column;align-items:center;color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Roboto,sans-serif;
+  background:radial-gradient(120% 70% at 50% 0%,var(--c1,#3d4a6b) 0%,#1b1f2b 55%,#0b0c10 100%);
+  padding:calc(env(safe-area-inset-top) + 64px) 28px calc(env(safe-area-inset-bottom) + 48px);user-select:none}
+#call .kind{font-size:15px;opacity:.75;margin-bottom:10px}
+#call .avatar{width:96px;height:96px;border-radius:50%;background:linear-gradient(160deg,#a4abb8,#6b7280);display:grid;place-items:center;font-size:40px;font-weight:500;margin-bottom:18px}
+#call .cname{font-size:34px;font-weight:400;letter-spacing:-.3px;text-align:center;line-height:1.1}
+#call .status{font-size:17px;opacity:.75;margin-top:8px;font-variant-numeric:tabular-nums}
+#call .spacer{flex:1}
+.incoming-btns{display:flex;justify-content:space-between;width:100%;max-width:300px}
+.cbtn{display:flex;flex-direction:column;align-items:center;gap:10px;font-size:14px;background:none;border:none;color:#fff;cursor:pointer}
+.cbtn i{width:74px;height:74px;border-radius:50%;display:grid;place-items:center}
+.cbtn i svg{width:32px;height:32px;fill:#fff}
+.cbtn.dec i{background:var(--red)}
+.cbtn.dec i svg{transform:rotate(135deg)}
+.cbtn.acc i{background:var(--acc);animation:pulse 1.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 #34c759aa}70%{box-shadow:0 0 0 18px #34c75900}100%{box-shadow:0 0 0 0 #34c75900}}
+.minor{display:flex;justify-content:space-between;width:100%;max-width:300px;margin-bottom:46px;opacity:.85}
+.minor div{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px}
+.minor svg{width:22px;height:22px;fill:#fff}
+.keys{display:grid;grid-template-columns:repeat(3,76px);gap:22px 30px;margin-bottom:56px}
+.key{display:flex;flex-direction:column;align-items:center;gap:7px;font-size:12px}
+.key i{width:76px;height:76px;border-radius:50%;background:#ffffff26;display:grid;place-items:center;backdrop-filter:blur(10px);cursor:pointer;transition:background .15s}
+.key i.on{background:#fff}
+.key i.on svg{fill:#111}
+.key svg{width:30px;height:30px;fill:#fff}
+.end i{width:76px;height:76px;border-radius:50%;background:var(--red);display:grid;place-items:center;cursor:pointer}
+.end svg{width:34px;height:34px;fill:#fff;transform:rotate(135deg)}
+#hint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 150px);text-align:center;font-size:13px;color:#ffffff59;padding:0 30px;min-height:20px;transition:opacity .3s}
+#activeView,#ringView{display:none;flex-direction:column;align-items:center;width:100%;flex:1}
+
+/* ===== Notificación + chat ===== */
+#notif{position:fixed;top:calc(env(safe-area-inset-top) + 10px);left:50%;transform:translate(-50%,-140%);width:calc(100% - 20px);max-width:440px;
+  background:#2a2d33f2;backdrop-filter:blur(16px);border-radius:20px;padding:12px 14px;display:flex;gap:12px;align-items:center;z-index:120;cursor:pointer;
+  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Roboto,sans-serif;color:#fff;transition:transform .35s cubic-bezier(.2,.9,.3,1.2);box-shadow:0 10px 30px #0009}
+#notif.show{transform:translate(-50%,0)}
+#notif .ic{width:38px;height:38px;border-radius:10px;background:#25d366;display:grid;place-items:center;flex:none}
+#notif .ic svg{width:22px;height:22px;fill:#fff}
+#notif .nt{flex:1;min-width:0}
+#notif .nt b{font-size:14px;display:flex;justify-content:space-between}
+#notif .nt b span{font-weight:400;opacity:.6;font-size:12px}
+#notif .nt p{font-size:14px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+#chat{position:fixed;inset:0;z-index:110;display:none;flex-direction:column;background:#0b141a;color:#e9edef;
+  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Roboto,sans-serif}
+#chat .top{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top) + 10px) 12px 10px;background:#1f2c34}
+#chat .top .back{background:none;border:none;color:#e9edef;cursor:pointer;padding:4px}
+#chat .top .back svg{width:24px;height:24px;fill:currentColor}
+#chat .av{width:38px;height:38px;border-radius:50%;background:linear-gradient(160deg,#a4abb8,#6b7280);display:grid;place-items:center;font-size:17px;flex:none}
+#chat .who b{display:block;font-size:16px;font-weight:600}
+#chat .who small{font-size:12.5px;color:#8696a0}
+#chat .who small.typing{color:#25d366}
+#chat .tico{margin-left:auto;display:flex;gap:18px;opacity:.85}
+#chat .tico svg{width:22px;height:22px;fill:#e9edef}
+#msgs{flex:1;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:4px;
+  background-color:#0b141a;background-image:radial-gradient(#ffffff08 1px,transparent 1px);background-size:18px 18px}
+.day{align-self:center;background:#182229;color:#8696a0;font-size:12px;padding:5px 10px;border-radius:8px;margin-bottom:8px}
+.bub{max-width:80%;padding:7px 10px 6px;border-radius:10px;font-size:15px;line-height:1.35;position:relative;animation:pop .2s ease-out}
+.bub small{display:block;text-align:right;font-size:11px;color:#ffffff80;margin-top:2px}
+.bub.in{align-self:flex-start;background:#202c33;border-top-left-radius:2px}
+.bub.out{align-self:flex-end;background:#005c4b;border-top-right-radius:2px}
+.bub.out small:after{content:" ✓✓";color:#53bdeb}
+.bub.dots{display:flex;gap:4px;padding:12px 14px}
+.bub.dots i{width:7px;height:7px;border-radius:50%;background:#8696a0;animation:blink 1.2s infinite}
+.bub.dots i:nth-child(2){animation-delay:.2s}.bub.dots i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.3}40%{opacity:1}}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
+#sugg{display:flex;gap:8px;overflow-x:auto;padding:8px 10px 0;background:#0b141a}
+#sugg button{flex:none;background:#1f2c34;border:1px solid #2a3942;color:#e9edef;border-radius:99px;padding:8px 12px;font-size:14px;cursor:pointer}
+#chat .bar{display:flex;gap:8px;padding:8px 10px calc(env(safe-area-inset-bottom) + 10px);background:#0b141a}
+#chat .bar input{flex:1;background:#1f2c34;border:none;border-radius:99px;padding:12px 16px;color:#e9edef;font-size:15px;outline:none}
+#chat .bar button{width:46px;height:46px;border-radius:50%;background:#00a884;border:none;display:grid;place-items:center;cursor:pointer;flex:none}
+#chat .bar button svg{width:22px;height:22px;fill:#fff}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="logo"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg></div>
+    <h1>Llamada de<br>Rescate</h1>
+  </header>
+  <p class="sub">Elige de qué te quieres salvar y quién te "llama". La app arma la excusa y te suena el teléfono con una llamada falsa, con voz y todo.</p>
+
+  <section class="step">
+    <h2><b>1</b>¿De qué te quieres salvar?</h2>
+    <div class="chips" id="sitChips"></div>
+  </section>
+
+  <section class="step">
+    <h2><b>2</b>¿Quién te llama?</h2>
+    <div class="chips" id="callerChips"></div>
+    <label class="f" for="customName">Nombre que aparece en pantalla (opcional)</label>
+    <input type="text" id="customName" placeholder="Ej: Mamá ❤️, Jefe Rodrigo…" maxlength="28">
+  </section>
+
+  <section class="step">
+    <h2><b>3</b>Estilo de la excusa</h2>
+    <div class="chips" id="toneChips"></div>
+  </section>
+
+  <section class="step">
+    <h2><b>4</b>¿Cómo te contacta y cuándo?</h2>
+    <div class="chips" id="modeChips" style="margin-bottom:12px"></div>
+    <div class="chips" id="delayChips"></div>
+  </section>
+
+  <section class="step">
+    <h2><b>5</b>A tu gusto</h2>
+    <label class="f" for="yo" style="margin-top:0">Tu nombre (para que te nombren en la llamada)</label>
+    <input type="text" id="yo" placeholder="Ej: Juan" maxlength="20">
+    <label class="f" for="ring">Tono de llamada</label>
+    <select id="ring">
+      <option value="clasico">Clásico (campanilla)</option>
+      <option value="marimba">Marimba</option>
+      <option value="digital">Digital</option>
+      <option value="silencio">Solo vibración / silencio</option>
+    </select>
+    <div style="margin-top:10px">
+      <div class="toggle"><div>Voz de quien llama<small>Se escucha por el parlante: úsala con volumen bajo o audífonos</small></div><label class="sw"><input type="checkbox" id="voice" checked><span></span></label></div>
+      <div class="toggle"><div>Guion discreto en pantalla<small>Te sopla lo que tienes que responder</small></div><label class="sw"><input type="checkbox" id="guion" checked><span></span></label></div>
+    </div>
+  </section>
+
+  <button class="btn main" id="genBtn"><svg viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.6 5.3a1 1 0 0 0-1.4 0L1.3 19a1 1 0 0 0 0 1.4l2.3 2.3a1 1 0 0 0 1.4 0L16.7 11a1 1 0 0 0 0-1.4zm-1.1 5.5-2.1-2.1 2.4-2.4 2.1 2.1z"/></svg>Generar excusa</button>
+
+  <div id="result">
+    <span class="tag" id="rTag"></span>
+    <h3 id="rTitle"></h3>
+    <div class="who" id="rWho"></div>
+    <div class="say"><h4>Lo que dice quien llama</h4><div id="rDice"></div></div>
+    <div class="say"><h4>Lo que respondes tú</h4><div id="rTu"></div></div>
+    <div class="say"><h4>Lo que le dices a los demás después</h4><p id="rRes"></p></div>
+    <button class="btn call" id="callBtn"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg><span id="callBtnTxt">Programar llamada</span></button>
+    <div class="grid2">
+      <button class="btn ghost" id="againBtn">🎲 Otra excusa</button>
+      <button class="btn ghost" id="copyBtn">💬 Copiar mensaje</button>
+    </div>
+    <p class="note">Deja esta pantalla abierta y el teléfono desbloqueado hasta que suene: si se bloquea la pantalla, el navegador no puede hacer sonar la llamada.</p>
+  </div>
+</div>
+
+<div id="countdown"><span>📞 Llamada en <b id="cdTime">0:10</b></span><button id="cdCancel">Cancelar</button></div>
+<div class="toast" id="toast"></div>
+
+<!-- Pantalla de llamada falsa -->
+<div id="call">
+  <div class="kind" id="cKind">llamada de móvil</div>
+  <div class="avatar" id="cAvatar">M</div>
+  <div class="cname" id="cName">Mamá</div>
+  <div class="status" id="cStatus"></div>
+
+  <div id="ringView">
+    <div class="spacer"></div>
+    <div class="minor">
+      <div><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7z"/></svg>Recordarme</div>
+      <div><svg viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>Mensaje</div>
+    </div>
+    <div class="incoming-btns">
+      <button class="cbtn dec" id="declineBtn"><i><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg></i>Rechazar</button>
+      <button class="cbtn acc" id="answerBtn"><i><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg></i>Contestar</button>
+    </div>
+  </div>
+
+  <div id="activeView">
+    <div class="spacer"></div>
+    <div class="keys">
+      <div class="key"><i data-t><svg viewBox="0 0 24 24"><path d="M19 11h-1.7c0 .7-.2 1.4-.4 2l1.2 1.2c.6-1 .9-2 .9-3.2zm-4 .2V5a3 3 0 0 0-6-.2zM4.3 3 3 4.3l6 6V11a3 3 0 0 0 4.2 2.7l1.7 1.7A5.3 5.3 0 0 1 6.7 11H5c0 3.4 2.7 6.2 6 6.7V21h2v-3.3c.9-.1 1.8-.5 2.5-.9l4.2 4.2 1.3-1.3z"/></svg></i>silenciar</div>
+      <div class="key"><i data-t><svg viewBox="0 0 24 24"><path d="M12 19a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM6 1a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm12-8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm-6 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></i>teclado</div>
+      <div class="key"><i data-t><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg></i>altavoz</div>
+      <div class="key"><i data-t><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg></i>agregar</div>
+      <div class="key"><i data-t><svg viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg></i>video</div>
+      <div class="key"><i data-t><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"/></svg></i>contactos</div>
+    </div>
+    <div class="end" id="endBtn"><i><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg></i></div>
+  </div>
+  <div id="hint"></div>
+</div>
+
+<!-- Notificación de mensaje -->
+<div id="notif"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.3-.5 0-1 .2-3.3-.7a11.6 11.6 0 0 1-4.6-4c-.4-.5-1-1.6-1-2.8 0-1.2.7-1.8 1-2.1.2-.2.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.3.5-.4.4c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.7 0l1-1.2c.2-.3.4-.2.7-.1l1.9.9c.3.1.5.2.5.3.1.2.1.8-.1 1.4z"/></svg></div>
+  <div class="nt"><b><em id="nName" style="font-style:normal"></em><span>ahora</span></b><p id="nText"></p></div></div>
+
+<!-- Chat falso -->
+<div id="chat">
+  <div class="top">
+    <button class="back" id="chatBack" aria-label="Cerrar"><svg viewBox="0 0 24 24"><path d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></svg></button>
+    <div class="av" id="chAv">M</div>
+    <div class="who"><b id="chName">Mamá</b><small id="chStatus">en línea</small></div>
+    <div class="tico"><svg viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg></div>
+  </div>
+  <div id="msgs"></div>
+  <div id="sugg"></div>
+  <div class="bar"><input id="chatIn" placeholder="Mensaje" autocomplete="off"><button id="chatSend" aria-label="Enviar"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg></button></div>
+</div>
+
+<script>
+/* ---------- Datos ---------- */
+const SITS = [
+  {id:'escape',  l:'🏃 Salir de algo ya'},
+  {id:'zafar',   l:'🙅 No puedo ir'},
+  {id:'amigos',  l:'🍻 Juntarme con los amigos'},
+  {id:'incomoda',l:'😬 Cita o conversación incómoda'},
+  {id:'visita',  l:'🛋️ Visita que no se va'}
+];
+const CALLERS = [
+  {id:'auto',    l:'🎲 Que elija la app'},
+  {id:'mama',    l:'Mamá',        name:'Mamá',              g:'f', grp:'mama',     rel:'mi mamá',       c:'#6b3d5a'},
+  {id:'papa',    l:'Papá',        name:'Papá',              g:'m', grp:'papa',     rel:'mi papá',       c:'#3d4f6b'},
+  {id:'jefe',    l:'Jefe',        name:'Jefe',              g:'m', grp:'jefatura', rel:'mi jefe',       c:'#38404f'},
+  {id:'jefa',    l:'Jefa',        name:'Jefa',              g:'f', grp:'jefatura', rel:'mi jefa',       c:'#38404f'},
+  {id:'amigo',   l:'Amigo',       name:'Nico',              g:'m', grp:'amistad',  rel:'un amigo',      c:'#2f5a4a'},
+  {id:'amiga',   l:'Amiga',       name:'Cami',              g:'f', grp:'amistad',  rel:'una amiga',     c:'#5a3f6b'},
+  {id:'hermano', l:'Hermano',     name:'Hermano',           g:'m', grp:'hermanos', rel:'mi hermano',    c:'#4a4a2f'},
+  {id:'hermana', l:'Hermana',     name:'Hermana',           g:'f', grp:'hermanos', rel:'mi hermana',    c:'#6b4a3d'},
+  {id:'conserje',l:'Conserjería', name:'Conserjería',       g:'m', grp:'edificio', rel:'el conserje',   c:'#2f4a5a'},
+  {id:'vecina',  l:'Vecina',      name:'Vecina 3B',         g:'f', grp:'edificio', rel:'una vecina',    c:'#5a4a2f'},
+  {id:'taller',  l:'Taller mecánico', name:'Taller Mecánico', g:'m', grp:'taller',  rel:'el taller',     c:'#4f3838'},
+  {id:'vet',     l:'Veterinaria', name:'Clínica Veterinaria', g:'f', grp:'vet',     rel:'la veterinaria', c:'#2f5a55'}
+];
+const TONES = [
+  {id:'auto',l:'🎲 Sorpréndeme'},{id:'creible',l:'🧐 Creíble'},{id:'urgente',l:'🚨 Urgente'},{id:'chistoso',l:'😂 Para reírse'}
+];
+const DELAYS = [
+  {id:0,l:'Ahora'},{id:10,l:'10 s'},{id:30,l:'30 s'},{id:60,l:'1 min'},{id:300,l:'5 min'}
+];
+
+const EX = [
+ {s:['escape','visita'],c:['edificio'],t:'urgente',titulo:'Se reventó una cañería',
+  dice:['{hola}, disculpa que te llame así. Hay agua saliendo por debajo de tu puerta, parece que se reventó una cañería.','Ya cortamos la llave general, pero el pasillo está todo mojado y el agua está bajando al departamento de abajo.','¿Puedes venir lo antes posible? Necesitamos que abras para ver de dónde sale.'],
+  tu:['¿Qué? ¿Cuánta agua?','Pucha… ¿y el de abajo?','Voy para allá altiro.'],
+  res:'Se reventó una cañería en mi casa y está pasando agua al vecino de abajo. Tengo que irme ya.'},
+ {s:['escape','zafar','visita'],c:['mama'],t:'urgente',titulo:'Mamá quedó afuera',
+  dice:['{hola}, perdona, ¿tienes un minuto? Me quedé afuera de la casa, se me quedaron las llaves adentro.','Y lo peor es que dejé la olla en la cocina prendida. Tú tienes la copia, ¿cierto?','Te espero aquí afuera, apúrate por favor.'],
+  tu:['¿Cómo que afuera? ¿Y la cocina?','Sí, la tengo yo.','Ya, voy saliendo.'],
+  res:'Mi mamá quedó afuera de su casa con la cocina prendida y yo tengo la única copia de las llaves.'},
+ {s:['escape','zafar'],c:['taller'],t:'creible',titulo:'Problema con los frenos',
+  dice:['Buenas, le hablo del taller. Tenemos su auto abierto y encontramos un problema en los frenos.','Es un arreglo caro y no quiero hacerle nada sin que usted lo vea primero y lo autorice.','Cerramos en una hora. Si no alcanza a venir, el auto queda parado hasta el lunes.'],
+  tu:['¿Los frenos? ¿Es grave?','¿Y no se puede ver por foto?','Ya, voy para allá.'],
+  res:'Me llamaron del taller: el auto tiene un problema en los frenos y tengo que ir a autorizar el arreglo antes de que cierren.'},
+ {s:['escape','visita','incomoda'],c:['jefatura'],t:'urgente',titulo:'Se cayó el sistema',
+  dice:['{hola}, disculpa la hora. Se cayó el sistema con el cliente y nos están llamando de arriba.','Necesito que te conectes a una videollamada en diez minutos, eres quien sabe cómo está configurado.','Te mando el link al correo. De verdad, perdona.'],
+  tu:['¿Ahora? ¿Qué pasó?','Ya, entiendo.','Me conecto en diez.'],
+  res:'Se cayó un sistema en la pega y me necesitan conectado en diez minutos. Perdón, no puedo zafar.'},
+ {s:['escape','incomoda'],c:['hermanos'],t:'chistoso',titulo:'El gato en el techo',
+  dice:['Necesito que vengas ya. El gato se subió al techo y no se quiere bajar.','La vecina está grabando todo y ya tiene como doscientas vistas.','Traje la escalera pero me da susto. Ven, porfa.'],
+  tu:['¿Cómo que en el techo?','No puede ser…','Ya, ya, voy.'],
+  res:'Una emergencia familiar con el gato, tengo que ir a ayudar. Larga historia.'},
+ {s:['escape','zafar','incomoda'],c:['amistad'],t:'creible',titulo:'Quedó en pana en la carretera',
+  dice:['{hola}, ¿estás cerca? Me quedé en pana en la carretera y la grúa dice que se demora dos horas.','Estoy a unos quince minutos de donde estás tú. ¿Me podrías venir a buscar?','Te debo una gigante.'],
+  tu:['¿Dónde estás exactamente?','Ya, mándame la ubicación.','Voy saliendo.'],
+  res:'{Rel} quedó en pana en la carretera y soy quien está más cerca. Tengo que ir a buscarle.'},
+ {s:['escape','visita'],c:['mama','papa'],t:'creible',titulo:'Llegó el técnico del gas',
+  dice:['{hola}, ¿te acordaste que hoy iba el técnico del gas a tu casa?','Me acaba de llamar: está afuera y dice que si no hay nadie no puede hacer la revisión, y si no la hace te cortan el gas.','¿Puedes ir? Yo no alcanzo a llegar.'],
+  tu:['Uy, se me olvidó por completo.','¿Y no puede volver otro día?','Ya, voy para allá.'],
+  res:'Llegó el técnico del gas a mi casa y si no estoy me cortan el gas. Tengo que irme.'},
+ {s:['zafar'],c:['jefatura'],t:'creible',titulo:'El cliente movió la reunión',
+  dice:['{hola}, perdona, cambio de planes. El cliente movió la reunión para hoy a última hora.','Necesito que estés tú, porque conoces el proyecto mejor que nadie.','Va a ser larga, así que organízate.'],
+  tu:['¿Hoy? ¿A qué hora?','Ya, déjame ver.','Ok, cuenta conmigo.'],
+  res:'Me movieron una reunión con un cliente para hoy y no la puedo cambiar. Lo siento mucho.'},
+ {s:['zafar'],c:['amistad'],t:'creible',titulo:'Mudanza de última hora',
+  dice:['{hola}, ¿tienes un rato? Me adelantaron la mudanza para hoy y me fallaron todos.','El camión llega en una hora y no tengo cómo subir el refri ni la lavadora.','Aunque sea un par de horas. Te pago con pizza.'],
+  tu:['¿Hoy? ¿No era el sábado?','Pucha, qué mala suerte.','Ya, te ayudo.'],
+  res:'A {rel} le adelantaron la mudanza para hoy y le fallaron todos. Me comprometí a ayudar.'},
+ {s:['zafar','visita'],c:['edificio'],t:'creible',titulo:'Revisión del medidor',
+  dice:['Buenas, le hablo de conserjería.','Hoy viene la empresa de agua a revisar los medidores entre las siete y las nueve, y su departamento quedó en la lista.','Necesitamos que haya alguien para abrir. Si no, multan a la comunidad completa.'],
+  tu:['¿Hoy? Nadie me avisó.','¿Y no se puede cambiar?','Ya, ahí voy a estar.'],
+  res:'Viene la empresa de agua a revisar mi departamento justo a esa hora y tengo que estar. Lo siento.'},
+ {s:['zafar','amigos'],c:['hermanos'],t:'chistoso',titulo:'El mueble imposible',
+  dice:['Necesito ayuda urgente. Le prometí a la mamá que hoy armábamos el mueble.','Llevo cuatro horas, el mueble está al revés y me sobran once tornillos.','Si no vienes, la mamá nos deshereda a los dos.'],
+  tu:['¿Once tornillos?','Jajaja, no puede ser.','Ya, voy, no toques nada más.'],
+  res:'Quedé de ayudar a armar un mueble en la casa de mi familia y la cosa se complicó. Tengo que ir.'},
+ {s:['zafar','escape'],c:['taller'],t:'creible',titulo:'Retirar el auto hoy',
+  dice:['Buenas tardes, le hablamos del taller. Su auto ya está listo.','El problema es que mañana cerramos por inventario, así que solo lo podemos entregar hoy hasta las ocho.','Tiene que venir el titular a firmar la orden de retiro.'],
+  tu:['¿Hoy hasta las ocho?','¿Y no puede ir otra persona?','Ya, voy en camino.'],
+  res:'Tengo que retirar el auto del taller hoy sí o sí, porque mañana cierran.'},
+ {s:['amigos'],c:['amistad'],t:'creible',titulo:'Cumpleaños sorpresa',
+  dice:['{hola}, ¿te acuerdas del cumpleaños sorpresa del Pancho? Es hoy.','Nos juntamos a las ocho. Tú quedaste a cargo de la torta, no me falles.','Y no le digas nada a nadie, que se puede enterar.'],
+  tu:['Ah, ¿era hoy?','Sí, sí, la torta, claro.','Ya, ahí nos vemos.'],
+  res:'Hoy es el cumpleaños sorpresa de un amigo y yo quedé a cargo de la torta. No puedo fallar.'},
+ {s:['amigos'],c:['amistad'],t:'urgente',titulo:'Flete y refrigerador',
+  dice:['{hola}, ¿estás por ahí? Me están entregando el departamento nuevo y el flete se va en una hora.','Tengo que subir el refrigerador y la lavadora por la escalera, y estamos solo el Nacho y yo.','Son un par de horas, después pedimos algo para comer. Porfa.'],
+  tu:['¿Ahora?','¿Cuántos pisos son?','Ya, voy.'],
+  res:'{Rel} necesita ayuda para subir el refrigerador al departamento nuevo; el flete se va en una hora.'},
+ {s:['amigos'],c:['jefatura'],t:'creible',titulo:'Despedida del equipo',
+  dice:['{hola}, solo un recordatorio: hoy es la despedida del Rodrigo.','Va todo el equipo y también va gerencia, así que sería mal visto no aparecer.','Aunque sea pasa un rato. Nos vemos a las siete y media.'],
+  tu:['Ah, ¿era hoy?','Sí, claro, entiendo.','Ya, ahí estaré.'],
+  res:'Hoy es la despedida de un compañero y va todo el equipo, incluida gerencia. Tengo que pasar aunque sea un rato.'},
+ {s:['amigos'],c:['amistad'],t:'chistoso',titulo:'Falta uno para la pichanga',
+  dice:['{hola}, emergencia deportiva: nos falta uno para la pichanga.','Si no completamos, perdemos la cancha por el resto del año. Está en el reglamento, y lo firmaste tú.','Te necesitamos. Aunque sea de arquero.'],
+  tu:['¿Cómo que lo firmé yo?','Jajaja, ya.','Ya, voy, guárdenme la camiseta.'],
+  res:'Si no completamos el equipo hoy perdemos la cancha por el resto del año. Me necesitan aunque sea de arquero.'},
+ {s:['amigos','zafar'],c:['hermanos'],t:'creible',titulo:'Ayuda con el auto',
+  dice:['{hola}, ¿puedes venir un rato? Dejé el auto a medio arreglar y necesito que alguien me ayude a sujetar.','Si no lo termino hoy, mañana no tengo cómo irme a la pega.','Una hora, máximo dos. Te invito algo después.'],
+  tu:['¿Qué le pasó?','Ya, entiendo.','Ok, voy para allá.'],
+  res:'Tengo que ayudar a {rel} con el auto; si no lo termina hoy, mañana no puede ir a trabajar.'},
+ {s:['amigos'],c:['amistad'],t:'chistoso',titulo:'Votación en el club',
+  dice:['Llamada oficial del club: hoy votamos el próximo libro.','Si no vienes, por reglamento te toca leer el de novecientas páginas y hacer la presentación.','Te guardamos asiento y empanadas.'],
+  tu:['¿Novecientas?','Ok, ok, entendí la amenaza.','Ahí estaré.'],
+  res:'Hoy hay votación en el club y si no voy me toca la peor parte. Voy un rato.'},
+ {s:['amigos'],c:['amistad'],t:'urgente',titulo:'Amigo con el corazón roto',
+  dice:['{hola}, ¿tienes un rato? Terminé con la Cata.','No me quiero quedar en la casa. Estamos con los demás en el bar de siempre.','Ven aunque sea un par de horas, te necesito.'],
+  tu:['Uf, lo siento mucho.','¿Dónde están?','Ya, voy para allá.'],
+  res:'{Rel} lo está pasando pésimo, terminó con su pareja y me necesita. Voy un rato a acompañar.'},
+ {s:['incomoda','escape'],c:['amistad','hermanos'],t:'chistoso',titulo:'Rescate oficial',
+  dice:['Hola, esta es tu llamada de rescate. Pon cara de preocupación.','Ahora di: ¿en serio? ¿ahora? Muy bien, muy convincente.','Ya, despídete rápido y sal de ahí. Te espero con un café.'],
+  tu:['¿En serio? ¿Ahora?','Ay, no…','Ya, voy para allá.'],
+  res:'Me surgió algo y tengo que irme, perdón. ¡Hablamos!'},
+ {s:['incomoda','escape'],c:['hermanos'],t:'creible',titulo:'Buscar a los sobrinos',
+  dice:['{hola}, ¿dónde estás? Se me descompuso el auto y no alcanzo a ir a buscar a los niños.','¿Los puedes ir a buscar tú? Salen en media hora.','Te debo una enorme.'],
+  tu:['¿A qué hora salen?','Sí, estoy cerca.','Ya, voy.'],
+  res:'Tengo que ir a buscar a mis sobrinos: a {rel} se le descompuso el auto.'},
+ {s:['incomoda','visita','zafar'],c:['mama','papa'],t:'creible',titulo:'Acompañar a la clínica',
+  dice:['{hola}, ¿te acuerdas que quedaste en acompañarme hoy?','Tengo hora para el examen y después no puedo manejar.','Te espero, no te demores.'],
+  tu:['Sí, sí, me acuerdo.','¿A qué hora era?','Ya, voy saliendo.'],
+  res:'Quedé de acompañar a {rel} a un examen y ya me están esperando.'},
+ {s:['visita','incomoda'],c:['jefatura'],t:'urgente',titulo:'Videollamada con gerencia',
+  dice:['{hola}, perdón que te interrumpa. Gerencia quiere una videollamada en cinco minutos.','Es por el informe, necesitan que lo presentes tú.','Conéctate desde el computador, te mando el link.'],
+  tu:['¿En cinco minutos?','Ya, tengo el informe a mano.','Me conecto altiro.'],
+  res:'Me acaban de citar a una videollamada urgente de la pega en cinco minutos. Lo siento, tengo que cortar acá.'},
+ {s:['visita'],c:['edificio'],t:'creible',titulo:'Fumigación del edificio',
+  dice:['Buenas, le hablo de conserjería.','Le aviso que en veinte minutos empieza la fumigación del piso y hay que desocupar el departamento por tres horas.','Dejamos el aviso hace una semana en el ascensor.'],
+  tu:['¿Hoy?','No vi el aviso.','Ya, gracias por avisar.'],
+  res:'Viene la fumigación del edificio en veinte minutos y hay que salir del departamento.'},
+ {s:['visita','zafar'],c:['mama'],t:'chistoso',titulo:'La mamá va en camino',
+  dice:['{hola}, voy llegando a tu casa, estoy a cinco minutos.','Te llevo el táper que me pediste y quiero ver si regaste las plantas.','Ordena un poquito, ¿ya? Te quiero.'],
+  tu:['¿Ahora?','Sí, mamá, las regué.','Ya, te espero.'],
+  res:'Viene mi mamá en camino, está a cinco minutos. ¡Otro día seguimos!'},
+ {s:['escape','zafar'],c:['vet'],t:'creible',titulo:'Retirar a la mascota',
+  dice:['Buenas, le hablamos de la clínica veterinaria.','Su mascota ya salió del procedimiento y está bien, pero necesitamos que la retire antes de las siete.','Además tiene que firmar el alta. Lo esperamos.'],
+  tu:['¿Está bien?','¿Antes de las siete?','Ya, voy para allá.'],
+  res:'Tengo que retirar a mi mascota de la veterinaria antes de que cierren.'},
+ {s:['escape','visita'],c:['edificio'],t:'urgente',titulo:'Se escapó el perro',
+  dice:['{hola}, disculpa, tu perro se escapó. Lo vi corriendo hacia la avenida.','Lo tengo más o menos encerrado en el estacionamiento, pero no me deja acercarme.','¿Puedes venir rápido?'],
+  tu:['¿Qué? ¿Cómo salió?','Ya, no lo dejes ir.','Voy altiro.'],
+  res:'Se escapó mi perro y una vecina lo tiene acorralado en el estacionamiento. Tengo que ir ya.'}
+];
+
+/* ---------- Estado / preferencias ---------- */
+const $ = id => document.getElementById(id);
+const MODES = [{id:'llamada',l:'📞 Llamada'},{id:'chat',l:'💬 Mensajes de chat'}];
+let st = {mode:'llamada', sit:'escape', caller:'auto', tone:'auto', delay:10, ring:'clasico', voice:true, guion:true, yo:'', custom:''};
+try { Object.assign(st, JSON.parse(localStorage.getItem('rescate-prefs')||'{}')); } catch(e){}
+const save = () => { try { localStorage.setItem('rescate-prefs', JSON.stringify(st)); } catch(e){} };
+
+function chips(el, list, key){
+  el.innerHTML = '';
+  list.forEach(o => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (st[key]===o.id ? ' on' : '');
+    b.textContent = o.l;
+    b.onclick = () => { st[key]=o.id; save(); chips(el,list,key); if(key==='caller') updPlaceholder(); if(key==='delay'||key==='mode') updCallBtn(); };
+    el.appendChild(b);
+  });
+}
+function updPlaceholder(){
+  const c = CALLERS.find(x=>x.id===st.caller);
+  $('customName').placeholder = (c && c.name) ? 'Por defecto: ' + c.name : 'Ej: Mamá ❤️, Jefe Rodrigo…';
+}
+function updCallBtn(){
+  const d = DELAYS.find(d=>d.id===st.delay).l;
+  if (st.mode === 'chat') $('callBtnTxt').textContent = st.delay===0 ? 'Recibir mensajes ahora' : 'Programar mensajes (' + d + ')';
+  else $('callBtnTxt').textContent = st.delay===0 ? 'Llamar ahora' : 'Programar llamada (' + d + ')';
+  const lbl = document.querySelector('#result .say h4');
+  if (lbl) lbl.textContent = st.mode==='chat' ? 'Lo que te escribe' : 'Lo que dice quien llama';
+}
+chips($('modeChips'), MODES, 'mode');
+chips($('sitChips'), SITS, 'sit');
+chips($('callerChips'), CALLERS, 'caller');
+chips($('toneChips'), TONES, 'tone');
+chips($('delayChips'), DELAYS, 'delay');
+$('yo').value = st.yo; $('customName').value = st.custom; $('ring').value = st.ring;
+$('voice').checked = st.voice; $('guion').checked = st.guion;
+$('yo').oninput = e => { st.yo = e.target.value.trim(); save(); if(cur) render(); };
+$('customName').oninput = e => { st.custom = e.target.value.trim(); save(); if(cur) render(); };
+$('ring').onchange = e => { st.ring = e.target.value; save(); };
+$('voice').onchange = e => { st.voice = e.target.checked; save(); };
+$('guion').onchange = e => { st.guion = e.target.checked; save(); };
+updPlaceholder(); updCallBtn();
+
+/* ---------- Generador ---------- */
+let cur = null, lastIdx = -1;
+const pick = a => a[Math.floor(Math.random()*a.length)];
+function generate(){
+  let pool = EX.map((e,i)=>({e,i})).filter(x => x.e.s.includes(st.sit));
+  const selCaller = CALLERS.find(c=>c.id===st.caller && c.grp);
+  let msg = '';
+  if (selCaller){
+    const p = pool.filter(x => x.e.c.includes(selCaller.grp));
+    if (p.length) pool = p; else msg = 'No tengo una excusa de ' + selCaller.l + ' para esto, así que te llama otra persona.';
+  }
+  if (st.tone !== 'auto'){
+    const p = pool.filter(x => x.e.t === st.tone);
+    if (p.length) pool = p; else if(!msg) msg = 'No hay una de ese estilo para esta combinación; te dejo la más parecida.';
+  }
+  if (pool.length > 1) pool = pool.filter(x => x.i !== lastIdx);
+  const ch = pick(pool); lastIdx = ch.i;
+  let caller = (selCaller && ch.e.c.includes(selCaller.grp)) ? selCaller : pick(CALLERS.filter(c => c.grp && ch.e.c.includes(c.grp)));
+  cur = {ex: ch.e, caller};
+  render();
+  if (msg) toast(msg);
+}
+function displayName(){ return (st.custom && (st.caller==='auto' || cur.caller.id===st.caller)) ? st.custom : cur.caller.name; }
+function fill(s){
+  const hola = st.yo ? 'Hola, ' + st.yo : 'Hola';
+  const rel = cur.caller.rel;
+  return s.replace('{hola}', hola).replace('{rel}', rel).replace('{Rel}', rel.charAt(0).toUpperCase()+rel.slice(1));
+}
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function render(){
+  const {ex} = cur;
+  $('rTag').textContent = {creible:'Creíble',urgente:'Urgente',chistoso:'Para reírse'}[ex.t];
+  $('rTitle').textContent = ex.titulo;
+  $('rWho').textContent = 'Te llama: ' + displayName();
+  $('rDice').innerHTML = ex.dice.map(l => '<p>“' + esc(fill(l)) + '”</p>').join('');
+  $('rTu').innerHTML = ex.tu.map(l => '<p class="you">' + esc(l) + '</p>').join('');
+  $('rRes').textContent = fill(ex.res);
+  $('result').style.display = 'block';
+}
+$('genBtn').onclick = () => { generate(); setTimeout(()=>$('result').scrollIntoView({behavior:'smooth',block:'start'}), 50); };
+$('againBtn').onclick = generate;
+$('copyBtn').onclick = async () => {
+  const txt = 'Perdón, me tengo que ir. ' + fill(cur.ex.res) + ' Te escribo después 🙏';
+  try { await navigator.clipboard.writeText(txt); toast('Mensaje copiado'); }
+  catch(e){ toast('No se pudo copiar: mantén presionado el texto para copiarlo'); }
+};
+
+function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove('show'),3200); }
+
+/* ---------- Audio: tonos de llamada ---------- */
+let actx = null, ringTimer = null, vibTimer = null;
+function ensureCtx(){
+  try {
+    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+  } catch(e){}
+}
+function note(f, t, d, type='sine', v=.22){
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(v, t+.01);
+  g.gain.exponentialRampToValueAtTime(.0001, t+d);
+  o.connect(g).connect(actx.destination); o.start(t); o.stop(t+d+.05);
+}
+const PATTERNS = {
+  clasico: { period: 3.2, play(t){ for (let b=0;b<2;b++) for (let i=0;i<18;i++) note(i%2?1180:960, t + b*1.1 + i*.05, .06, 'triangle', .12); } },
+  marimba: { period: 3.0, play(t){ [659,784,988,880,784,659,587,659].forEach((f,i)=>{ note(f, t+i*.17, .35, 'sine', .28); note(f*2, t+i*.17, .12, 'sine', .05); }); } },
+  digital: { period: 2.0, play(t){ for (let i=0;i<4;i++) note(1400, t+i*.14, .09, 'square', .06); } },
+  silencio:{ period: 2.0, play(){} }
+};
+function startRing(){
+  ensureCtx();
+  const p = PATTERNS[st.ring] || PATTERNS.clasico;
+  const go = () => { if (actx) p.play(actx.currentTime + .05); };
+  go(); ringTimer = setInterval(go, p.period*1000);
+  const vib = () => { try { navigator.vibrate && navigator.vibrate([700,400,700]); } catch(e){} };
+  vib(); vibTimer = setInterval(vib, 2200);
+}
+function stopRing(){ clearInterval(ringTimer); clearInterval(vibTimer); try { navigator.vibrate && navigator.vibrate(0); } catch(e){} }
+
+/* ---------- Voz ---------- */
+let voices = [];
+function loadVoices(){ try { voices = speechSynthesis.getVoices(); } catch(e){} }
+loadVoices(); try { speechSynthesis.onvoiceschanged = loadVoices; } catch(e){}
+function pickVoice(g){
+  const es = voices.filter(v => /^es/i.test(v.lang));
+  const pref = es.filter(v => /CL|419|MX|US|AR/i.test(v.lang));
+  const list = pref.length ? pref : es;
+  const fem = /(paulina|monica|mónica|helena|laura|sabina|lucia|lucía|female|mujer|esperanza|marisol|soledad|francisca|catalina)/i;
+  const byG = list.filter(v => g==='f' ? fem.test(v.name) : !fem.test(v.name));
+  return byG[0] || list[0] || null;
+}
+
+/* ---------- Llamada ---------- */
+let inCall = false, schedTimer = null, cdTimer = null, missTimer = null, clockTimer = null, speakTimer = null, wakeLock = null;
+
+$('callBtn').onclick = async () => {
+  ensureCtx();                         // desbloquea el audio con este toque
+  try { speechSynthesis.cancel(); } catch(e){}
+  try { if (navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen'); } catch(e){}
+  clearTimeout(schedTimer); clearInterval(cdTimer);
+  const fire = () => st.mode === 'chat' ? startChat() : ring();
+  if (st.delay === 0) { fire(); return; }
+  let left = st.delay;
+  const show = () => { $('cdTime').textContent = Math.floor(left/60) + ':' + String(left%60).padStart(2,'0'); };
+  show(); $('countdown').style.display = 'flex';
+  cdTimer = setInterval(() => { left--; show(); if (left<=0) clearInterval(cdTimer); }, 1000);
+  schedTimer = setTimeout(() => { $('countdown').style.display='none'; fire(); }, st.delay*1000);
+};
+$('cdCancel').onclick = () => { clearTimeout(schedTimer); clearInterval(cdTimer); $('countdown').style.display='none'; releaseWake(); toast('Llamada cancelada'); };
+
+function releaseWake(){ try { wakeLock && wakeLock.release(); } catch(e){} wakeLock = null; }
+
+function ring(){
+  const name = displayName();
+  $('cName').textContent = name;
+  const ini = name.replace(/[^\p{L}\p{N}]/gu,'').charAt(0).toUpperCase() || '?';
+  $('cAvatar').textContent = ini;
+  $('call').style.setProperty('--c1', cur.caller.c || '#3d4a6b');
+  $('cKind').textContent = 'llamada de móvil';
+  $('cStatus').textContent = '';
+  $('hint').textContent = '';
+  $('ringView').style.display = 'flex'; $('activeView').style.display = 'none';
+  $('call').style.display = 'flex';
+  startRing();
+  missTimer = setTimeout(() => { endCall(); toast('Llamada perdida 😅'); }, 30000);
+}
+$('declineBtn').onclick = () => endCall();
+$('answerBtn').onclick = () => {
+  stopRing(); clearTimeout(missTimer);
+  inCall = true;
+  $('ringView').style.display = 'none'; $('activeView').style.display = 'flex';
+  $('cKind').textContent = '';
+  let s = 0; $('cStatus').textContent = '00:00';
+  clockTimer = setInterval(() => { s++; $('cStatus').textContent = String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0'); }, 1000);
+  converse();
+};
+$('endBtn').onclick = () => endCall();
+document.querySelectorAll('.key i').forEach(k => k.onclick = () => k.classList.toggle('on'));
+
+function converse(){
+  const lines = cur.ex.dice.map(fill), you = cur.ex.tu;
+  let i = 0;
+  const hint = t => { $('hint').textContent = st.guion ? t : ''; };
+  hint('Escuchando…');
+  if (!st.voice || !('speechSynthesis' in window)) {
+    // Sin voz: solo muestra el guion con pausas
+    const step = () => { if (!inCall || i>=you.length) { hint(st.guion ? 'Cuelga cuando quieras' : ''); return; } hint('Tú: ' + you[i]); i++; speakTimer = setTimeout(step, 5000); };
+    speakTimer = setTimeout(step, 3500); return;
+  }
+  const v = pickVoice(cur.caller.g);
+  const say = () => {
+    if (!inCall) return;
+    if (i >= lines.length) { hint('Cuelga cuando quieras'); return; }
+    const u = new SpeechSynthesisUtterance(lines[i]);
+    if (v) u.voice = v; u.lang = v ? v.lang : 'es-CL';
+    u.rate = 1.02; u.pitch = cur.caller.g==='f' ? 1.15 : 0.82; u.volume = 1;
+    hint('Escuchando…');
+    u.onend = () => { if (!inCall) return; hint('Tú: ' + (you[i]||'…')); i++; speakTimer = setTimeout(say, 3300); };
+    u.onerror = u.onend;
+    speechSynthesis.speak(u);
+  };
+  say(); // primera frase dentro del toque (necesario en iPhone)
+}
+
+/* ---------- Mensajes de chat ---------- */
+let chatTimers = [], notifTimer = null, chatOpen = false;
+const hhmm = () => { const d = new Date(); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); };
+function ding(){ ensureCtx(); if (!actx || st.ring==='silencio') return; const t = actx.currentTime+.02; note(1320,t,.18,'sine',.22); note(1760,t+.12,.25,'sine',.18); try{navigator.vibrate&&navigator.vibrate(200);}catch(e){} }
+function chatLines(){
+  // parte las frases largas en mensajes cortos, como se escribe en un chat
+  const out = [];
+  cur.ex.dice.map(fill).forEach(l => {
+    if (l.length > 95) { const p = l.split(/(?<=[.?!])\s+/); out.push(...p); } else out.push(l);
+  });
+  return out;
+}
+function addBubble(text, who){
+  const b = document.createElement('div');
+  b.className = 'bub ' + who;
+  b.innerHTML = esc(text) + '<small>' + hhmm() + '</small>';
+  $('msgs').appendChild(b); $('msgs').scrollTop = 1e6;
+  return b;
+}
+function startChat(){
+  chatOpen = false; chatTimers.forEach(clearTimeout); chatTimers = [];
+  const name = displayName(), lines = chatLines();
+  $('chName').textContent = name; $('nName').textContent = name;
+  $('chAv').textContent = name.replace(/[^\p{L}\p{N}]/gu,'').charAt(0).toUpperCase() || '?';
+  $('msgs').innerHTML = '<div class="day">HOY</div>';
+  $('sugg').innerHTML = '';
+  cur.ex.tu.forEach(t => { const b = document.createElement('button'); b.textContent = t; b.onclick = () => { addBubble(t,'out'); b.remove(); }; $('sugg').appendChild(b); });
+  $('nText').textContent = lines[0];
+  ding();
+  $('notif').classList.add('show');
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => $('notif').classList.remove('show'), 9000);
+  // si no la abres, insiste con un segundo mensaje
+  chatTimers.push(setTimeout(() => { if (!chatOpen && lines[1]) { $('nText').textContent = lines[1]; ding(); $('notif').classList.add('show'); } }, 12000));
+  startChat.lines = lines;
+}
+$('notif').onclick = () => {
+  $('notif').classList.remove('show'); chatOpen = true;
+  ensureCtx();
+  $('chat').style.display = 'flex';
+  const lines = startChat.lines; let i = 0;
+  const status = (t, typing) => { $('chStatus').textContent = t; $('chStatus').className = typing ? 'typing' : ''; };
+  const next = () => {
+    if (!chatOpen || i >= lines.length) { status('en línea'); return; }
+    status('escribiendo…', true);
+    const dots = document.createElement('div'); dots.className = 'bub in dots'; dots.innerHTML = '<i></i><i></i><i></i>';
+    $('msgs').appendChild(dots); $('msgs').scrollTop = 1e6;
+    const wait = Math.min(1200 + lines[i].length * 45, 5000);
+    chatTimers.push(setTimeout(() => {
+      dots.remove(); addBubble(lines[i], 'in'); ding(); status('en línea'); i++;
+      chatTimers.push(setTimeout(next, 1400 + Math.random()*1200));
+    }, wait));
+  };
+  addBubble(lines[0], 'in'); i = 1;
+  chatTimers.push(setTimeout(next, 1500));
+};
+function sendOwn(){ const v = $('chatIn').value.trim(); if (!v) return; addBubble(v,'out'); $('chatIn').value=''; }
+$('chatSend').onclick = sendOwn;
+$('chatIn').onkeydown = e => { if (e.key === 'Enter') sendOwn(); };
+$('chatBack').onclick = () => {
+  chatOpen = false; chatTimers.forEach(clearTimeout); chatTimers = [];
+  $('chat').style.display = 'none'; $('notif').classList.remove('show'); releaseWake();
+};
+
+function endCall(){
+  inCall = false;
+  stopRing(); clearTimeout(missTimer); clearInterval(clockTimer); clearTimeout(speakTimer);
+  try { speechSynthesis.cancel(); } catch(e){}
+  $('call').style.display = 'none';
+  releaseWake();
+}
+</script>
+</body>
+</html>
